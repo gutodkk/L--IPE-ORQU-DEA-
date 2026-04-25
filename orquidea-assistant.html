@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0a0f">
+<title>Orquídea AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07070f;
+    --surface: #0f0f1a;
+    --surface2: #16162a;
+    --orchid: #c084fc;
+    --orchid-dim: #7c3aed44;
+    --orchid-glow: #a855f755;
+    --gold: #f0c060;
+    --text: #e8e4f0;
+    --text-dim: #8878a0;
+    --border: #2a2040;
+    --green: #4ade80;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Ambient background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 60% 40% at 80% 10%, #7c3aed18 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 10% 80%, #c084fc0a 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Header */
+  header {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    position: relative;
+  }
+
+  .logo-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .logo-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    color: var(--orchid);
+  }
+
+  .logo-text span {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    display: block;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Mode tabs */
+  .tabs {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    padding: 10px 16px;
+    gap: 6px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    flex-shrink: 0;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab.active {
+    background: var(--orchid-dim);
+    border-color: var(--orchid);
+    color: var(--orchid);
+  }
+
+  .tab:hover:not(.active) {
+    border-color: var(--text-dim);
+    color: var(--text);
+  }
+
+  /* Chat area */
+  .chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .welcome {
+    text-align: center;
+    padding: 40px 20px;
+    opacity: 0.6;
+  }
+
+  .welcome-flower {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 0 20px var(--orchid));
+  }
+
+  .welcome h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 300;
+    color: var(--orchid);
+    margin-bottom: 6px;
+  }
+
+  .welcome p {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .quick-btn {
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+    line-height: 1.4;
+  }
+
+  .quick-btn:hover {
+    border-color: var(--orchid);
+    color: var(--text);
+    background: var(--orchid-dim);
+  }
+
+  .quick-btn .q-icon {
+    font-size: 1rem;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  /* Messages */
+  .message {
+    display: flex;
+    gap: 10px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .message.user {
+    flex-direction: row-reverse;
+  }
+
+  .msg-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .message.ai .msg-avatar {
+    background: var(--orchid-dim);
+    border: 1px solid var(--orchid);
+    color: var(--orchid);
+  }
+
+  .message.user .msg-avatar {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+
+  .msg-bubble {
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    line-height: 1.6;
+  }
+
+  .message.ai .msg-bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top-left-radius: 4px;
+    color: var(--text);
+  }
+
+  .message.user .msg-bubble {
+    background: var(--orchid-dim);
+    border: 1px solid var(--orchid);
+    border-top-right-radius: 4px;
+    color: var(--text);
+  }
+
+  .msg-bubble strong {
+    color: var(--orchid);
+  }
+
+  /* Typing indicator */
+  .typing {
+    display: flex;
+    gap: 4px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    border-top-left-radius: 4px;
+    width: fit-content;
+  }
+
+  .typing span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--orchid);
+    animation: bounce 1s ease-in-out infinite;
+  }
+
+  .typing span:nth-child(2) { animation-delay: 0.15s; }
+  .typing span:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-6px); opacity: 1; }
+  }
+
+  /* Input area */
+  .input-area {
+    position: relative;
+    z-index: 10;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+
+  .input-wrapper {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px 12px;
+    transition: border-color 0.2s;
+  }
+
+  .input-wrapper:focus-within {
+    border-color: var(--orchid);
+    box-shadow: 0 0 0 2px var(--orchid-glow);
+  }
+
+  textarea {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    resize: none;
+    max-height: 120px;
+    min-height: 22px;
+    scrollbar-width: none;
+  }
+
+  textarea::placeholder { color: var(--text-dim); }
+
+  .send-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--orchid);
+    background: var(--orchid-dim);
+    color: var(--orchid);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+  }
+
+  .send-btn:hover {
+    background: var(--orchid);
+    color: var(--bg);
+  }
+
+  .send-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* Context chips */
+  .context-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .chip:hover, .chip.active {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  /* Mode panels */
+  .panel { display: none; }
+  .panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+  /* Video categorizer */
+  .tool-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px;
+  }
+
+  .tool-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .tool-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    font-weight: 300;
+    color: var(--orchid);
+    margin-bottom: 12px;
+    letter-spacing: 0.05em;
+  }
+
+  .tool-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    outline: none;
+    margin-bottom: 8px;
+    transition: border-color 0.2s;
+  }
+
+  .tool-input:focus { border-color: var(--orchid); }
+
+  .tool-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--orchid);
+    background: var(--orchid-dim);
+    color: var(--orchid);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .tool-btn:hover { background: var(--orchid); color: var(--bg); }
+  .tool-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .result-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 0.72rem;
+    line-height: 1.7;
+    display: none;
+    white-space: pre-wrap;
+  }
+
+  .result-box.show { display: block; }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid var(--orchid);
+    color: var(--orchid);
+    font-size: 0.6rem;
+    margin: 2px;
+  }
+
+  /* Social creator */
+  .platform-select {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .plat-btn {
+    flex: 1;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 0.6rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .plat-btn.active {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: #f0c06015;
+  }
+
+  /* Memory panel */
+  .memory-item {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: var(--surface);
+    font-size: 0.7rem;
+    line-height: 1.5;
+  }
+
+  .memory-item .mem-date {
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+
+  .memory-item .mem-topic {
+    color: var(--orchid);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    line-height: 2;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="16" cy="16" rx="5" ry="8" fill="none" stroke="#c084fc" stroke-width="1.2"/>
+        <ellipse cx="16" cy="16" rx="8" ry="5" fill="none" stroke="#c084fc" stroke-width="1.2" transform="rotate(45 16 16)"/>
+        <ellipse cx="16" cy="16" rx="8" ry="5" fill="none" stroke="#c084fc44" stroke-width="1" transform="rotate(-45 16 16)"/>
+        <circle cx="16" cy="16" r="2.5" fill="#c084fc"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      Orquídea
+      <span>AI Assistant</span>
+    </div>
+  </div>
+  <div class="status">
+    <div class="status-dot"></div>
+    online
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('chat')">💬 Chat</button>
+  <button class="tab" onclick="switchTab('video')">🎬 Vídeos</button>
+  <button class="tab" onclick="switchTab('social')">📱 Social</button>
+  <button class="tab" onclick="switchTab('ecommerce')">🛒 E-commerce</button>
+  <button class="tab" onclick="switchTab('memory')">🧠 Memória</button>
+</div>
+
+<!-- CHAT PANEL -->
+<div class="panel active" id="panel-chat">
+  <div class="chat-area" id="chatArea">
+    <div class="welcome" id="welcomeMsg">
+      <div class="welcome-flower">🌸</div>
+      <h2>Orquídea</h2>
+      <p>Assistente inteligente · pronta para te ajudar</p>
+      <div class="quick-actions">
+        <button class="quick-btn" onclick="quickSend('Categoriza este vídeo para mim')">
+          <span class="q-icon">🎬</span>Categorizar vídeo
+        </button>
+        <button class="quick-btn" onclick="quickSend('Cria uma legenda para Instagram')">
+          <span class="q-icon">📸</span>Legenda Instagram
+        </button>
+        <button class="quick-btn" onclick="quickSend('Descrição de produto para e-commerce')">
+          <span class="q-icon">🛒</span>Descrição produto
+        </button>
+        <button class="quick-btn" onclick="quickSend('Analisa o nicho deste conteúdo')">
+          <span class="q-icon">🔍</span>Analisar nicho
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="input-area">
+    <div class="context-bar">
+      <button class="chip active" onclick="setCtx(this,'geral')">Geral</button>
+      <button class="chip" onclick="setCtx(this,'ecommerce')">E-commerce</button>
+      <button class="chip" onclick="setCtx(this,'conteudo')">Conteúdo</button>
+      <button class="chip" onclick="setCtx(this,'filosofia')">Filosofia</button>
+    </div>
+    <div class="input-wrapper">
+      <textarea id="msgInput" placeholder="Digite sua mensagem..." rows="1"
+        onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">↑</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIDEO PANEL -->
+<div class="panel" id="panel-video">
+  <div class="tool-panel">
+    <div class="tool-card">
+      <h3>🎬 Categorizador de Vídeos</h3>
+      <input class="tool-input" id="videoInput" placeholder="Cole link do vídeo ou descreva o conteúdo...">
+      <textarea class="tool-input" id="videoDesc" placeholder="Transcrição ou legenda do vídeo (opcional)..." rows="3" style="resize:vertical"></textarea>
+      <button class="tool-btn" id="videoBtn" onclick="categorizeVideo()">Analisar e Categorizar</button>
+      <div class="result-box" id="videoResult"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SOCIAL PANEL -->
+<div class="panel" id="panel-social">
+  <div class="tool-panel">
+    <div class="tool-card">
+      <h3>📱 Criador de Conteúdo Social</h3>
+      <div class="platform-select">
+        <button class="plat-btn active" onclick="setPlatform(this,'instagram')">Instagram</button>
+        <button class="plat-btn" onclick="setPlatform(this,'tiktok')">TikTok</button>
+        <button class="plat-btn" onclick="setPlatform(this,'youtube')">YouTube</button>
+        <button class="plat-btn" onclick="setPlatform(this,'shopee')">Shopee</button>
+      </div>
+      <input class="tool-input" id="socialTopic" placeholder="Tema ou produto do conteúdo...">
+      <textarea class="tool-input" id="socialExtra" placeholder="Detalhes adicionais (tom, público, objetivo)..." rows="2" style="resize:vertical"></textarea>
+      <button class="tool-btn" id="socialBtn" onclick="generateSocial()">Gerar Conteúdo</button>
+      <div class="result-box" id="socialResult"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ECOMMERCE PANEL -->
+<div class="panel" id="panel-ecommerce">
+  <div class="tool-panel">
+    <div class="tool-card">
+      <h3>🛒 Assistente E-commerce</h3>
+      <input class="tool-input" id="prodName" placeholder="Nome do produto...">
+      <input class="tool-input" id="prodKeywords" placeholder="Palavras-chave (ex: ergonômico, premium, resistente)...">
+      <textarea class="tool-input" id="prodExtra" placeholder="Detalhes extras (preço, público, diferenciais)..." rows="2" style="resize:vertical"></textarea>
+      <button class="tool-btn" id="ecomBtn" onclick="generateProduct()">Gerar Descrição</button>
+      <div class="result-box" id="ecomResult"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MEMORY PANEL -->
+<div class="panel" id="panel-memory">
+  <div class="tool-panel" id="memoryList">
+    <div class="empty-state">
+      🧠<br>
+      Nenhuma memória ainda.<br>
+      Converse no chat e as memórias<br>serão salvas aqui.
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL = "https://api.anthropic.com/v1/messages";
+const MODEL = "claude-sonnet-4-20250514";
+
+let currentCtx = 'geral';
+let currentPlatform = 'instagram';
+let memories = JSON.parse(localStorage.getItem('orquidea_memories') || '[]');
+let chatHistory = [];
+
+const SYSTEM_PROMPT = `Você é Orquídea, uma assistente de IA inteligente, analítica e direta. 
+Sua personalidade: objetiva, eficiente, levemente poética quando o tema permite, sem rodeios.
+Você ajuda com: produtividade, categorização de conteúdo, criação para redes sociais, e-commerce e análise geral.
+Fale sempre em português brasileiro. Seja concisa mas completa. Use formatação quando ajuda a clareza.
+Contexto atual do usuário: projeto de e-commerce com monetização via Instagram, TikTok Shop, Shopee e YouTube, 
+trabalhando com curadoria de vídeos virais em múltiplos nichos (humor, animais, carros, metafísica).`;
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+  if (tab === 'memory') renderMemories();
+}
+
+function setCtx(btn, ctx) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  currentCtx = ctx;
+}
+
+function setPlatform(btn, plat) {
+  document.querySelectorAll('.plat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPlatform = plat;
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function quickSend(text) {
+  document.getElementById('msgInput').value = text;
+  sendMessage();
+}
+
+function addMessage(role, content) {
+  const welcome = document.getElementById('welcomeMsg');
+  if (welcome) welcome.remove();
+
+  const area = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = `message ${role === 'user' ? 'user' : 'ai'}`;
+  
+  const avatar = role === 'user' ? 'G' : '🌸';
+  div.innerHTML = `
+    <div class="msg-avatar">${avatar}</div>
+    <div class="msg-bubble">${content.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div>
+  `;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+  return div;
+}
+
+function showTyping() {
+  const area = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'message ai';
+  div.id = 'typing-indicator';
+  div.innerHTML = `
+    <div class="msg-avatar">🌸</div>
+    <div class="typing"><span></span><span></span><span></span></div>
+  `;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing-indicator');
+  if (t) t.remove();
+}
+
+async function sendMessage() {
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('sendBtn').disabled = true;
+
+  addMessage('user', text);
+  chatHistory.push({ role: 'user', content: text });
+
+  showTyping();
+
+  try {
+    const ctxNote = currentCtx !== 'geral' ? `\n[Contexto ativo: ${currentCtx}]` : '';
+    
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT + ctxNote,
+        messages: chatHistory
+      })
+    });
+
+    const data = await res.json();
+    const reply = data.content?.map(b => b.text || '').join('') || 'Erro ao obter resposta.';
+
+    removeTyping();
+    addMessage('ai', reply);
+    chatHistory.push({ role: 'assistant', content: reply });
+
+    // Save to memory
+    saveMemory(text, reply);
+
+  } catch (err) {
+    removeTyping();
+    addMessage('ai', 'Erro de conexão. Verifique sua internet e tente novamente.');
+  }
+
+  document.getElementById('sendBtn').disabled = false;
+}
+
+async function categorizeVideo() {
+  const link = document.getElementById('videoInput').value.trim();
+  const desc = document.getElementById('videoDesc').value.trim();
+  if (!link && !desc) return;
+
+  const btn = document.getElementById('videoBtn');
+  const result = document.getElementById('videoResult');
+  btn.disabled = true;
+  btn.textContent = 'Analisando...';
+  result.className = 'result-box';
+
+  try {
+    const prompt = `Analise e categorize este conteúdo de vídeo para uso em redes sociais e e-commerce:
+Link/Título: ${link || 'não informado'}
+Descrição/Transcrição: ${desc || 'não informada'}
+
+Retorne:
+1. **Nicho principal** (ex: humor, tecnologia, culinária, metafísica, etc.)
+2. **Nichos secundários**
+3. **Tags relevantes** (10-15 hashtags)
+4. **Plataformas ideais** (Instagram, TikTok, YouTube, Shopee)
+5. **Potencial de engajamento** (baixo/médio/alto + justificativa)
+6. **Sugestão de título** para cada plataforma principal`;
+
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }],
+        system: SYSTEM_PROMPT
+      })
+    });
+
+    const data = await res.json();
+    const reply = data.content?.map(b => b.text || '').join('') || 'Erro.';
+    result.innerHTML = reply.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--orchid)">$1</strong>');
+    result.className = 'result-box show';
+
+  } catch (e) {
+    result.textContent = 'Erro de conexão.';
+    result.className = 'result-box show';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Analisar e Categorizar';
+}
+
+async function generateSocial() {
+  const topic = document.getElementById('socialTopic').value.trim();
+  if (!topic) return;
+
+  const extra = document.getElementById('socialExtra').value.trim();
+  const btn = document.getElementById('socialBtn');
+  const result = document.getElementById('socialResult');
+  btn.disabled = true;
+  btn.textContent = 'Gerando...';
+
+  const platformGuides = {
+    instagram: 'Instagram: foco em legenda envolvente (até 2200 chars), emojis estratégicos, 30 hashtags relevantes, CTA claro',
+    tiktok: 'TikTok: gancho forte nas primeiras 3 palavras, tom jovem e dinâmico, 5-10 hashtags trending, duração ideal do vídeo',
+    youtube: 'YouTube: título SEO-otimizado (60 chars), descrição com keywords, tags, thumbnail concept, timestamps sugeridos',
+    shopee: 'Shopee: título com keywords de busca, descrição persuasiva com benefícios, specs técnicas, urgência e prova social'
+  };
+
+  try {
+    const prompt = `Crie conteúdo otimizado para ${currentPlatform.toUpperCase()}:
+Tema/Produto: ${topic}
+Detalhes extras: ${extra || 'nenhum'}
+Plataforma: ${platformGuides[currentPlatform]}
+
+Seja específico, criativo e focado em conversão/engajamento.`;
+
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }],
+        system: SYSTEM_PROMPT
+      })
+    });
+
+    const data = await res.json();
+    const reply = data.content?.map(b => b.text || '').join('') || 'Erro.';
+    result.innerHTML = reply.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--gold)">$1</strong>');
+    result.className = 'result-box show';
+
+  } catch (e) {
+    result.textContent = 'Erro de conexão.';
+    result.className = 'result-box show';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Gerar Conteúdo';
+}
+
+async function generateProduct() {
+  const name = document.getElementById('prodName').value.trim();
+  if (!name) return;
+
+  const keywords = document.getElementById('prodKeywords').value.trim();
+  const extra = document.getElementById('prodExtra').value.trim();
+  const btn = document.getElementById('ecomBtn');
+  const result = document.getElementById('ecomResult');
+  btn.disabled = true;
+  btn.textContent = 'Gerando...';
+
+  try {
+    const prompt = `Crie uma descrição completa para e-commerce:
+Produto: ${name}
+Keywords: ${keywords || 'não informadas'}
+Detalhes: ${extra || 'nenhum'}
+
+Inclua:
+1. **Título otimizado** (para Shopee/Mercado Livre)
+2. **Descrição curta** (para cards de produto)
+3. **Descrição completa** (persuasiva, com benefícios e specs)
+4. **Perguntas frequentes** (3 FAQs com respostas)
+5. **Tags de busca** relevantes`;
+
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }],
+        system: SYSTEM_PROMPT
+      })
+    });
+
+    const data = await res.json();
+    const reply = data.content?.map(b => b.text || '').join('') || 'Erro.';
+    result.innerHTML = reply.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--green)">$1</strong>');
+    result.className = 'result-box show';
+
+  } catch (e) {
+    result.textContent = 'Erro de conexão.';
+    result.className = 'result-box show';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Gerar Descrição';
+}
+
+function saveMemory(userMsg, aiReply) {
+  const mem = {
+    date: new Date().toLocaleDateString('pt-BR'),
+    topic: userMsg.substring(0, 60) + (userMsg.length > 60 ? '...' : ''),
+    summary: aiReply.substring(0, 120) + '...'
+  };
+  memories.unshift(mem);
+  if (memories.length > 50) memories = memories.slice(0, 50);
+  localStorage.setItem('orquidea_memories', JSON.stringify(memories));
+}
+
+function renderMemories() {
+  const list = document.getElementById('memoryList');
+  if (memories.length === 0) {
+    list.innerHTML = `<div class="empty-state">🧠<br>Nenhuma memória ainda.<br>Converse no chat e as memórias<br>serão salvas aqui.</div>`;
+    return;
+  }
+  list.innerHTML = memories.map(m => `
+    <div class="memory-item">
+      <div class="mem-date">${m.date}</div>
+      <div class="mem-topic">${m.topic}</div>
+      <div>${m.summary}</div>
+    </div>
+  `).join('');
+}
+</script>
+</body>
+</html>
